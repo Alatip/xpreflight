@@ -7,6 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<!-- Google Analytics (GA4) — loaded only after explicit consent; ID is public, safe in the public repo -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+</script>
 <style>
   :root{
     --bg:#15171C; --panel:#1E2128; --panel-2:#22262E;
@@ -106,6 +111,16 @@
   .logt{color:var(--muted);flex:none;}
   .logm{white-space:pre-wrap;word-break:break-word;}
   footer{margin-top:40px;color:var(--muted);font-size:12px;font-family:"JetBrains Mono",monospace;text-align:center;line-height:1.7;}
+  .cookie-link{display:block;margin:10px auto 0;background:none;border:none;color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+  .cookie-link:hover{color:var(--amber);}
+  .consent{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px);max-width:680px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.45);padding:14px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;z-index:50;}
+  .consent[hidden]{display:none;}
+  .consent-text{margin:0;flex:1;min-width:220px;font-size:13px;color:var(--ink);line-height:1.5;}
+  .consent-btns{display:flex;gap:8px;flex:none;}
+  .consent button{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;border-radius:var(--radius);padding:9px 14px;cursor:pointer;border:1px solid var(--line);transition:filter .15s ease;}
+  .consent .consent-no{background:transparent;color:var(--muted);}
+  .consent .consent-yes{background:var(--amber);color:#1a1304;border:none;}
+  .consent button:hover{filter:brightness(1.12);}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;}}
 </style>
 </head>
@@ -181,6 +196,15 @@
   </div>
 
   <footer data-i18n="footer">local tool · key stays in your browser only · posting via web intent</footer>
+  <button class="cookie-link" id="cookieManage" data-i18n="cookieManage">cookies</button>
+</div>
+
+<div class="consent" id="consent" hidden>
+  <p class="consent-text" id="consentText" data-i18n="cookieText">Nothing you type leaves your browser — your API key and draft stay local. The only thing collected is anonymous usage stats via Google Analytics (cookies), to see which features get used.</p>
+  <div class="consent-btns">
+    <button class="consent-no" id="consentNo" data-i18n="cookieDecline">Decline</button>
+    <button class="consent-yes" id="consentYes" data-i18n="cookieAccept">Accept analytics</button>
+  </div>
 </div>
 
 <script>
@@ -216,6 +240,21 @@
     get(k,d){ try{ const v=localStorage.getItem("pf_"+k); return v===null?d:v; }catch(_){ return d; } },
     set(k,v){ try{ localStorage.setItem("pf_"+k,v); }catch(_){ } }
   };
+
+  // analytics — opt-in only (GDPR). GA loads after consent; events carry
+  // event name + non-PII params only, never the draft text or key.
+  const GA_ID = "G-9PVDJ76E3W";
+  let consent = LS.get("consent","");        // "" | "granted" | "denied"
+  let gaLoaded = false;
+  function loadGA(){
+    if(gaLoaded) return; gaLoaded=true;
+    window["ga-disable-"+GA_ID]=false;
+    const s=document.createElement("script"); s.async=true;
+    s.src="https://www.googletagmanager.com/gtag/js?id="+GA_ID;
+    document.head.appendChild(s);
+    gtag("js", new Date()); gtag("config", GA_ID);
+  }
+  function track(name,params){ if(consent!=="granted") return; try{ if(window.gtag) window.gtag("event",name,params||{}); }catch(_){ } }
 
   // ---------- i18n ----------
   const guideEN = `
@@ -287,7 +326,9 @@
       logReceived:"response received · {ms} ms",
       logParsing:"parsing model output…",
       logVerdict:"done · verdict: {verdict}",
-      logFailed:"failed: {msg}"
+      logFailed:"failed: {msg}",
+      cookieText:"Nothing you type leaves your browser — your API key and draft stay local. The only thing collected is anonymous usage stats via Google Analytics (cookies), to see which features get used.",
+      cookieAccept:"Accept analytics", cookieDecline:"Decline", cookieManage:"cookies"
     },
     ru:{
       title:"Предполётная проверка — черновик перед постом в X",
@@ -318,7 +359,9 @@
       logReceived:"ответ получен · {ms} мс",
       logParsing:"разбираю ответ модели…",
       logVerdict:"готово · вердикт: {verdict}",
-      logFailed:"сбой: {msg}"
+      logFailed:"сбой: {msg}",
+      cookieText:"Ничего из того, что ты вводишь, не покидает браузер — API-ключ и черновик остаются локально. Наружу уходит только анонимная статистика использования через Google Analytics (куки), чтобы видеть, какими функциями пользуются.",
+      cookieAccept:"Принять аналитику", cookieDecline:"Отклонить", cookieManage:"куки"
     }
   };
 
@@ -363,7 +406,7 @@
 
   // wiring
   document.querySelectorAll("#lang button").forEach(b=> b.addEventListener("click", ()=>{
-    lang = b.getAttribute("data-lang"); LS.set("lang",lang); applyLang();
+    lang = b.getAttribute("data-lang"); LS.set("lang",lang); applyLang(); track("lang_switch",{lang:lang});
   }));
   provSel.addEventListener("change", ()=>{ provider=provSel.value; LS.set("provider",provider); applyProvider(); });
   keyInput.addEventListener("input", ()=> LS.set("key_"+provider, keyInput.value));
@@ -441,6 +484,7 @@
     logLine(fmt(T.logReady,{n:text.length}));
     logLine(fmt(T.logProvider,{provider:pLabel,model:model}));
     logLine(fmt(T.logSearch,{state:useSearch?T.on:T.off}));
+    track("check_run",{provider:provider, model:model, websearch:useSearch, draft_len:text.length});
     runBtn.disabled=true; runBtn.innerHTML='<span class="spin"></span>'+T.checking;
     try{
       logLine(fmt(T.logSending,{provider:pLabel}));
@@ -450,12 +494,14 @@
       logLine(T.logParsing);
       lastResult = extractJSON(raw);
       logLine(fmt(T.logVerdict,{verdict:lastResult.verdict||"?"}),"done");
+      track("check_result",{provider:provider, verdict:lastResult.verdict||"?", claims:Array.isArray(lastResult.claims)?lastResult.claims.length:0});
       render(lastResult);
     }catch(e){
       let m=e.message||String(e);
       if(/Failed to fetch|NetworkError/i.test(m)) m=T.errNet;
       showErr(T.errPrefix+m);
       logLine(fmt(T.logFailed,{msg:m}),"err");
+      track("check_error",{provider:provider, message:String(m).slice(0,100)});
     }finally{ runBtn.disabled=false; runBtn.textContent=T.run; }
   }
 
@@ -503,10 +549,20 @@
   }
 
   copyBtn.addEventListener("click", async ()=>{
+    track("copy_click");
     try{ await navigator.clipboard.writeText(cleaned.value); copyBtn.textContent=T.copied; setTimeout(()=>copyBtn.textContent=T.copy,1400); }
     catch(_){ copyBtn.textContent="—"; }
   });
+  postBtn.addEventListener("click", ()=> track("post_click",{verdict:(lastResult&&lastResult.verdict)||"none"}));
   runBtn.addEventListener("click", run);
+
+  // consent / GDPR banner
+  const consentEl = $("consent");
+  $("consentYes").addEventListener("click", ()=>{ consent="granted"; LS.set("consent","granted"); consentEl.hidden=true; loadGA(); });
+  $("consentNo").addEventListener("click", ()=>{ consent="denied"; LS.set("consent","denied"); window["ga-disable-"+GA_ID]=true; consentEl.hidden=true; });
+  $("cookieManage").addEventListener("click", ()=>{ consentEl.hidden=false; });
+  if(consent==="granted") loadGA();
+  else if(consent!=="denied") consentEl.hidden=false;   // first visit → ask
 })();
 </script>
 </body>
