@@ -370,7 +370,10 @@
     openai:{ ph:"sk-...", label:"OpenAI", models:["gpt-5.5","gpt-5"], def:"gpt-5.5" }
   };
 
-  let lang = (LS.get("lang","en")==="ru") ? "ru" : "en";
+  // language can be deep-linked via #en / #ru (e.g. shared from a post); hash wins over saved
+  function langFromHash(){ const h=(location.hash||"").replace(/^#/,"").toLowerCase(); return (h==="en"||h==="ru")?h:""; }
+  function setHash(l){ try{ history.replaceState(null,"","#"+l); }catch(_){ try{ location.hash=l; }catch(_e){} } }
+  let lang = langFromHash() || ((LS.get("lang","en")==="ru") ? "ru" : "en");
   let T = I18N[lang];
   let provider = (LS.get("provider","anthropic") in PROVIDERS) ? LS.get("provider","anthropic") : "anthropic";
   let lastResult = null;
@@ -388,6 +391,7 @@
   function applyLang(){
     T = I18N[lang];
     document.documentElement.lang = lang;
+    setHash(lang);
     document.title = T.title;
     document.querySelectorAll("[data-i18n]").forEach(el=>{ const k=el.getAttribute("data-i18n"); if(T[k]!=null) el.textContent=T[k]; });
     document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ const k=el.getAttribute("data-i18n-ph"); if(T[k]!=null) el.placeholder=T[k]; });
@@ -408,6 +412,7 @@
   document.querySelectorAll("#lang button").forEach(b=> b.addEventListener("click", ()=>{
     lang = b.getAttribute("data-lang"); LS.set("lang",lang); applyLang(); track("lang_switch",{lang:lang});
   }));
+  window.addEventListener("hashchange", ()=>{ const l=langFromHash(); if(l && l!==lang){ lang=l; LS.set("lang",lang); applyLang(); } });
   provSel.addEventListener("change", ()=>{ provider=provSel.value; LS.set("provider",provider); applyProvider(); });
   keyInput.addEventListener("input", ()=> LS.set("key_"+provider, keyInput.value));
   modelInput.addEventListener("input", ()=> LS.set("model_"+provider, modelInput.value));
