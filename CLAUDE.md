@@ -34,7 +34,8 @@ manual. The point is to stop me from firing off confident but unverified takes.
   via the toggle top-right. Strings live in the `I18N` object. Keep EN as default.
 - **Persistence:** `localStorage`, all keys prefixed `pf_`:
   `pf_lang`, `pf_provider`, `pf_key_anthropic`, `pf_key_openai`,
-  `pf_model_anthropic`, `pf_model_openai`, `pf_websearch`, `pf_draft`.
+  `pf_model_anthropic`, `pf_model_openai`, `pf_websearch`, `pf_draft`,
+  `pf_consent` (GA4 analytics consent: `granted` | `denied`).
   All `localStorage` access is wrapped in try/catch so it degrades silently.
 
 ## Guardrails — do not break these
