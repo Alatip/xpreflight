@@ -382,10 +382,10 @@
     return [
       "You are a strict pre-publication reviewer of draft posts for X (Twitter).",
       "Tasks: 1) fix only typos and grammar, PRESERVING the author's voice, style, slang and tone — do not rewrite or smooth it out;",
-      "2) identify factual claims and verify each (use web search if available);",
+      "2) identify factual claims and verify each (use web search if available); a factual claim INCLUDES any confident evaluative or comparative assertion presented as fact — e.g. 'X is the best', 'A is as good as B', 'X is faster/smarter than Y' — even when it uses subjective words like 'cool', 'great', 'crazy'; extract and verify these;",
       "3) mark each as verified, unverified or wrong with a short note "+noteLang+";",
       "4) give a verdict: CLEARED if there are no factual errors; HOLD if there is at least one wrong claim or a risky unverifiable statement presented as fact.",
-      "Opinions and jokes are not facts — do not flag them.",
+      "Exempt ONLY pure personal preference explicitly framed as taste ('I like X', 'X is my favorite') and obvious jokes — do not flag those. When unsure whether a confident statement is opinion or a factual assertion, treat it as a claim and verify it.",
       "The 'cleaned' field and the 'summary' field must be "+noteLang+", matching the draft's language for 'cleaned'.",
       "Reply STRICTLY as a single JSON object, no markdown, no explanations, schema:",
       '{"cleaned": string, "verdict": "CLEARED"|"HOLD", "summary": string, "claims": [{"text": string, "status": "verified"|"unverified"|"wrong", "note": string}]}'
