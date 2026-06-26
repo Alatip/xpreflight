@@ -94,6 +94,12 @@
   .err{display:none;margin-top:16px;border:1px solid var(--red);border-radius:var(--radius);background:rgba(229,99,77,.08);color:var(--red);padding:13px 15px;font-size:14px;font-family:"JetBrains Mono",monospace;}
   .spin{display:inline-block;width:13px;height:13px;border:2px solid #1a1304;border-top-color:transparent;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-2px;margin-right:8px;}
   @keyframes rot{to{transform:rotate(360deg)}}
+  .log{display:none;margin-top:14px;border:1px solid var(--line);border-radius:var(--radius);background:#101216;padding:9px 12px;max-height:190px;overflow-y:auto;}
+  .logline{display:flex;gap:10px;padding:2px 0;font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1.5;color:var(--ink);}
+  .logline.err{color:var(--red);}
+  .logline.done{color:var(--green);}
+  .logt{color:var(--muted);flex:none;}
+  .logm{white-space:pre-wrap;word-break:break-word;}
   footer{margin-top:40px;color:var(--muted);font-size:12px;font-family:"JetBrains Mono",monospace;text-align:center;line-height:1.7;}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;}}
 </style>
@@ -148,6 +154,7 @@
 
   <button class="run" id="runBtn" data-i18n="run">Check</button>
   <div class="err" id="err"></div>
+  <div class="log" id="log" aria-live="polite"></div>
 
   <div id="result">
     <div class="verdict" id="verdict">
@@ -182,7 +189,23 @@
   const postBtn = $("postBtn"), copyBtn = $("copyBtn");
   const provSel = $("provider"), keyInput = $("key"), modelInput = $("model");
   const keyHint = $("keyHint"), websearch = $("websearch"), modelsList = $("models");
+  const logEl = $("log");
   const TWEET_MAX = 280;
+
+  const now = () => (window.performance && performance.now) ? performance.now() : Date.now();
+  let runStart = 0;
+  function fmt(s,p){ return String(s).replace(/\{(\w+)\}/g,(_,k)=> (p&&p[k]!=null)?p[k]:""); }
+  function logClear(){ logEl.innerHTML=""; logEl.style.display="none"; }
+  function logLine(msg,kind){
+    const t=((now()-runStart)/1000).toFixed(2), stamp="+"+t+"s";
+    if(logEl.style.display==="none"||!logEl.style.display) logEl.style.display="block";
+    const line=document.createElement("div"); line.className="logline"+(kind?" "+kind:"");
+    const ts=document.createElement("span"); ts.className="logt"; ts.textContent=stamp;
+    const tx=document.createElement("span"); tx.className="logm"; tx.textContent=msg;
+    line.appendChild(ts); line.appendChild(tx); logEl.appendChild(line);
+    logEl.scrollTop=logEl.scrollHeight;
+    try{ console.log("[xpreflight "+stamp+"] "+msg); }catch(_){ }
+  }
 
   const LS = {
     get(k,d){ try{ const v=localStorage.getItem("pf_"+k); return v===null?d:v; }catch(_){ return d; } },
@@ -249,7 +272,17 @@
       errKey:"No API key. Open “Provider, key, model” and paste it.",
       errModel:"No model selected.", errDraft:"Draft is empty.",
       errNet:"Request failed — check the key and API access (network/CORS).",
-      errPrefix:"Error: ", errNoJson:"the model returned non-JSON"
+      errPrefix:"Error: ", errNoJson:"the model returned non-JSON",
+      on:"on", off:"off",
+      logValidating:"validating draft…",
+      logReady:"draft ok · {n} chars",
+      logProvider:"provider: {provider} · model: {model}",
+      logSearch:"web search: {state}",
+      logSending:"sending request to {provider}…",
+      logReceived:"response received · {ms} ms",
+      logParsing:"parsing model output…",
+      logVerdict:"done · verdict: {verdict}",
+      logFailed:"failed: {msg}"
     },
     ru:{
       title:"Предполётная проверка — черновик перед постом в X",
@@ -270,7 +303,17 @@
       errKey:"Нет API-ключа. Открой «Провайдер, ключ, модель» и вставь его.",
       errModel:"Не выбрана модель.", errDraft:"Пустой черновик.",
       errNet:"Запрос не прошёл — проверь ключ и доступ к API (сеть/CORS).",
-      errPrefix:"Ошибка: ", errNoJson:"модель вернула не-JSON"
+      errPrefix:"Ошибка: ", errNoJson:"модель вернула не-JSON",
+      on:"вкл", off:"выкл",
+      logValidating:"проверяю черновик…",
+      logReady:"черновик ок · {n} симв.",
+      logProvider:"провайдер: {provider} · модель: {model}",
+      logSearch:"веб-поиск: {state}",
+      logSending:"отправляю запрос в {provider}…",
+      logReceived:"ответ получен · {ms} мс",
+      logParsing:"разбираю ответ модели…",
+      logVerdict:"готово · вердикт: {verdict}",
+      logFailed:"сбой: {msg}"
     }
   };
 
@@ -383,20 +426,31 @@
 
   async function run(){
     clearErr();
+    runStart=now(); logClear();
     const key=keyInput.value.trim(), model=modelInput.value.trim(), text=draft.value.trim();
-    if(!key){ showErr(T.errKey); return; }
-    if(!model){ showErr(T.errModel); return; }
-    if(!text){ showErr(T.errDraft); return; }
+    logLine(T.logValidating);
+    if(!key){ showErr(T.errKey); logLine(fmt(T.logFailed,{msg:T.errKey}),"err"); return; }
+    if(!model){ showErr(T.errModel); logLine(fmt(T.logFailed,{msg:T.errModel}),"err"); return; }
+    if(!text){ showErr(T.errDraft); logLine(fmt(T.logFailed,{msg:T.errDraft}),"err"); return; }
+    const useSearch=websearch.checked, pLabel=PROVIDERS[provider].label;
+    logLine(fmt(T.logReady,{n:text.length}));
+    logLine(fmt(T.logProvider,{provider:pLabel,model:model}));
+    logLine(fmt(T.logSearch,{state:useSearch?T.on:T.off}));
     runBtn.disabled=true; runBtn.innerHTML='<span class="spin"></span>'+T.checking;
     try{
-      const useSearch=websearch.checked;
+      logLine(fmt(T.logSending,{provider:pLabel}));
+      const t0=now();
       const raw = provider==="openai" ? await callOpenAI(key,model,text,useSearch) : await callAnthropic(key,model,text,useSearch);
+      logLine(fmt(T.logReceived,{ms:Math.round(now()-t0)}));
+      logLine(T.logParsing);
       lastResult = extractJSON(raw);
+      logLine(fmt(T.logVerdict,{verdict:lastResult.verdict||"?"}),"done");
       render(lastResult);
     }catch(e){
       let m=e.message||String(e);
       if(/Failed to fetch|NetworkError/i.test(m)) m=T.errNet;
       showErr(T.errPrefix+m);
+      logLine(fmt(T.logFailed,{msg:m}),"err");
     }finally{ runBtn.disabled=false; runBtn.textContent=T.run; }
   }
 
