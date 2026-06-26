@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pre-flight check — review your draft before posting to X</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#15171C; --panel:#1E2128; --panel-2:#22262E;
+    --ink:#E8E6E0; --muted:#878D99; --line:#2C313B;
+    --amber:#E8A33D; --amber-dim:#7a5a22;
+    --green:#5FB87A; --red:#E5634D; --radius:4px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:"Inter",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;padding:24px 20px 80px;}
+  .wrap{max-width:680px;margin:0 auto;}
+  .topbar{display:flex;justify-content:flex-end;margin-bottom:18px;}
+  .lang{display:inline-flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  .lang button{background:transparent;border:none;color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;padding:6px 12px;cursor:pointer;}
+  .lang button + button{border-left:1px solid var(--line);}
+  .lang button.on{background:var(--amber);color:#1a1304;font-weight:700;}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .eyebrow::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px var(--amber);animation:pulse 2.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+  h1{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:30px;line-height:1.12;margin:0 0 10px;letter-spacing:-.01em;}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 26px;max-width:56ch;}
+  details.cfg{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);margin-bottom:18px;}
+  details.cfg > summary{cursor:pointer;list-style:none;padding:12px 14px;font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:space-between;}
+  details.cfg > summary::-webkit-details-marker{display:none;}
+  details.cfg > summary::after{content:"+";color:var(--amber);font-size:15px;line-height:1;}
+  details.cfg[open] > summary::after{content:"\2212";}
+  .cfg-body{padding:4px 14px 16px;border-top:1px solid var(--line);}
+  .field{margin-top:14px;}
+  label.lbl{display:block;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  input[type=password],input[type=text],select,textarea{width:100%;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:11px 12px;font-family:"JetBrains Mono",monospace;font-size:13px;}
+  textarea{font-family:"Inter",sans-serif;font-size:16px;line-height:1.55;resize:vertical;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 1px var(--amber-dim);}
+  .hint{color:var(--muted);font-size:12px;margin-top:6px;}
+  .hint a{color:var(--amber);}
+  .check{display:flex;align-items:center;gap:9px;margin-top:16px;font-size:13px;color:var(--muted);font-family:"JetBrains Mono",monospace;}
+  .check input{width:auto;}
+  details.guide{margin-top:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel-2);}
+  details.guide > summary{cursor:pointer;list-style:none;padding:11px 13px;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;justify-content:space-between;}
+  details.guide > summary::-webkit-details-marker{display:none;}
+  details.guide > summary::after{content:"+";font-size:15px;line-height:1;}
+  details.guide[open] > summary::after{content:"\2212";}
+  .guide-body{padding:6px 15px 16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink);}
+  .guide-body h4{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--amber);margin:16px 0 8px;}
+  .guide-body ol{margin:0 0 4px;padding-left:20px;}
+  .guide-body li{margin:5px 0;line-height:1.5;}
+  .guide-body a{color:var(--amber);}
+  .guide-body code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--line);}
+  .guide-body .note{color:var(--muted);font-size:12.5px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px;line-height:1.55;}
+  .draft-wrap{position:relative;}
+  #draft{min-height:130px;}
+  .counter{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted);text-align:right;margin-top:6px;}
+  .counter.over{color:var(--red);}
+  .run{margin-top:16px;width:100%;background:var(--amber);color:#1a1304;border:none;border-radius:var(--radius);padding:14px;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:filter .15s ease;}
+  .run:hover:not(:disabled){filter:brightness(1.08);}
+  .run:disabled{opacity:.45;cursor:not-allowed;}
+  #result{margin-top:26px;display:none;}
+  .verdict{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:16px 18px;}
+  .lamp{width:16px;height:16px;border-radius:50%;flex:none;background:var(--muted);}
+  .verdict .vtext{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:20px;letter-spacing:.02em;}
+  .verdict .vnote{color:var(--muted);font-size:13px;margin-top:2px;}
+  .verdict.cleared .lamp{background:var(--green);box-shadow:0 0 14px var(--green);}
+  .verdict.cleared .vtext{color:var(--green);}
+  .verdict.hold .lamp{background:var(--red);box-shadow:0 0 14px var(--red);}
+  .verdict.hold .vtext{color:var(--red);}
+  .sec-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px;}
+  ul.claims{list-style:none;margin:0;padding:0;}
+  ul.claims li{display:flex;gap:11px;padding:11px 0;border-top:1px solid var(--line);font-size:14px;}
+  ul.claims li:first-child{border-top:none;}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px;}
+  .dot.verified{background:var(--green);}
+  .dot.unverified{background:var(--amber);}
+  .dot.wrong{background:var(--red);}
+  .claim-txt{flex:1;}
+  .claim-status{font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:.05em;}
+  .claim-status.verified{color:var(--green);}
+  .claim-status.unverified{color:var(--amber);}
+  .claim-status.wrong{color:var(--red);}
+  .claim-note{color:var(--muted);font-size:13px;margin-top:3px;}
+  #cleaned{min-height:90px;margin-top:2px;}
+  .actions{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;}
+  .btn{border-radius:var(--radius);padding:13px 18px;cursor:pointer;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);text-decoration:none;display:inline-flex;align-items:center;gap:8px;background:var(--panel-2);color:var(--ink);transition:filter .15s ease;}
+  .btn:hover{filter:brightness(1.15);}
+  .btn.post{flex:1;justify-content:center;border:none;background:var(--green);color:#06210f;}
+  .btn.post.warn{background:transparent;border:1px solid var(--red);color:var(--red);}
+  .err{display:none;margin-top:16px;border:1px solid var(--red);border-radius:var(--radius);background:rgba(229,99,77,.08);color:var(--red);padding:13px 15px;font-size:14px;font-family:"JetBrains Mono",monospace;}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid #1a1304;border-top-color:transparent;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-2px;margin-right:8px;}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  footer{margin-top:40px;color:var(--muted);font-size:12px;font-family:"JetBrains Mono",monospace;text-align:center;line-height:1.7;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="lang" id="lang">
+      <button data-lang="en">EN</button>
+      <button data-lang="ru">RU</button>
+    </div>
+  </div>
+
+  <p class="eyebrow" data-i18n="eyebrow">Pre-flight check</p>
+  <h1 data-i18n="h1">Check the draft, then post</h1>
+  <p class="sub" data-i18n="sub">Paste your draft. It cleans typos, fact-checks claims against the web, and gives a verdict: cleared for takeoff or hold. Posting stays manual — nothing leaves without you.</p>
+
+  <details class="cfg">
+    <summary><span data-i18n="cfgSummary">Provider, key, model</span></summary>
+    <div class="cfg-body">
+      <div class="field">
+        <label class="lbl" for="provider" data-i18n="providerLabel">Provider</label>
+        <select id="provider">
+          <option value="anthropic">Anthropic · Claude</option>
+          <option value="openai">OpenAI · GPT</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl" for="key">API key</label>
+        <input id="key" type="password" autocomplete="off" />
+        <p class="hint" id="keyHint"></p>
+      </div>
+      <div class="field">
+        <label class="lbl" for="model" data-i18n="modelLabel">Model</label>
+        <input id="model" type="text" list="models" autocomplete="off" spellcheck="false" />
+        <datalist id="models"></datalist>
+      </div>
+      <label class="check"><input id="websearch" type="checkbox" /> <span data-i18n="websearchLabel">fact-check via web search (billed by provider)</span></label>
+
+      <details class="guide">
+        <summary><span data-i18n="guideSummary">Where to get a key</span></summary>
+        <div class="guide-body" id="guideBody"></div>
+      </details>
+    </div>
+  </details>
+
+  <div class="draft-wrap">
+    <label class="lbl" for="draft" data-i18n="draftLabel">Draft</label>
+    <textarea id="draft" data-i18n-ph="draftPh" placeholder="Paste what you are about to post, before you post it…"></textarea>
+    <div class="counter" id="draftCount">0</div>
+  </div>
+
+  <button class="run" id="runBtn" data-i18n="run">Check</button>
+  <div class="err" id="err"></div>
+
+  <div id="result">
+    <div class="verdict" id="verdict">
+      <span class="lamp"></span>
+      <div>
+        <div class="vtext" id="vtext">—</div>
+        <div class="vnote" id="vnote"></div>
+      </div>
+    </div>
+    <div class="sec-label" id="claimsLabel" data-i18n="claimsLabel" style="display:none">Claims</div>
+    <ul class="claims" id="claims"></ul>
+    <div class="sec-label" data-i18n="cleanedLabel">Cleaned text</div>
+    <textarea id="cleaned"></textarea>
+    <div class="counter" id="cleanCount">0</div>
+    <div class="actions">
+      <button class="btn" id="copyBtn" data-i18n="copy">Copy</button>
+      <a class="btn post" id="postBtn" data-i18n="post" target="_blank" rel="noopener">Post to X</a>
+    </div>
+  </div>
+
+  <footer data-i18n="footer">local tool · key stays in your browser only · posting via web intent</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const draft = $("draft"), cleaned = $("cleaned");
+  const runBtn = $("runBtn"), errBox = $("err"), result = $("result");
+  const verdict = $("verdict"), vtext = $("vtext"), vnote = $("vnote");
+  const claimsEl = $("claims"), claimsLabel = $("claimsLabel");
+  const postBtn = $("postBtn"), copyBtn = $("copyBtn");
+  const provSel = $("provider"), keyInput = $("key"), modelInput = $("model");
+  const keyHint = $("keyHint"), websearch = $("websearch"), modelsList = $("models");
+  const TWEET_MAX = 280;
+
+  const LS = {
+    get(k,d){ try{ const v=localStorage.getItem("pf_"+k); return v===null?d:v; }catch(_){ return d; } },
+    set(k,v){ try{ localStorage.setItem("pf_"+k,v); }catch(_){ } }
+  };
+
+  // ---------- i18n ----------
+  const guideEN = `
+    <h4>Anthropic · Claude</h4>
+    <ol>
+      <li>Open <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> and sign in.</li>
+      <li>Settings → <strong>API keys</strong> → <strong>Create Key</strong>. Copy the key (looks like <code>sk-ant-...</code>) — it is shown only once.</li>
+      <li>Billing → add credit. The API is billed separately from your Claude subscription, pay-as-you-go (per token).</li>
+      <li>Paste the key in the field above with provider set to <strong>Anthropic</strong>.</li>
+    </ol>
+    <h4>OpenAI · GPT</h4>
+    <ol>
+      <li>Open <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> → <strong>API keys</strong>.</li>
+      <li><strong>Create new secret key</strong>. Copy <code>sk-...</code> — also shown only once.</li>
+      <li>Billing → add a payment method and credit, or the key returns an "insufficient quota" error.</li>
+      <li>Paste it above with provider set to <strong>OpenAI</strong>. Default model is <code>gpt-5.5</code>.</li>
+    </ol>
+    <div class="note">
+      Web search (the checkbox above) is a paid server-side tool: roughly $10 per 1,000 searches on Anthropic (on top of tokens), and a per-call fee on OpenAI. Make sure it is enabled for your account / project. Without it the check runs on plausibility only, no real search — cheaper but weaker.
+      Your key is stored only in this browser (localStorage) and is sent only to the provider's API.
+    </div>`;
+  const guideRU = `
+    <h4>Anthropic · Claude</h4>
+    <ol>
+      <li>Открой <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>, залогинься.</li>
+      <li>Settings → <strong>API keys</strong> → <strong>Create Key</strong>. Скопируй ключ вида <code>sk-ant-...</code> — показывается один раз.</li>
+      <li>Billing → пополни баланс. API оплачивается отдельно от подписки на Claude, по факту использования (за токены).</li>
+      <li>Вставь ключ в поле выше, выбрав провайдер <strong>Anthropic</strong>.</li>
+    </ol>
+    <h4>OpenAI · GPT</h4>
+    <ol>
+      <li>Открой <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> → <strong>API keys</strong>.</li>
+      <li><strong>Create new secret key</strong>. Скопируй <code>sk-...</code> — тоже показывается один раз.</li>
+      <li>Billing → добавь оплату и пополни баланс, иначе ключ вернёт ошибку «insufficient quota».</li>
+      <li>Вставь ключ выше, выбрав провайдер <strong>OpenAI</strong>. Модель по умолчанию <code>gpt-5.5</code>.</li>
+    </ol>
+    <div class="note">
+      Веб-поиск (галочка выше) — платный серверный инструмент: у Anthropic порядка $10 за 1000 поисков сверх токенов, у OpenAI — плата за вызов. Убедись, что он доступен на аккаунте / в проекте. Без него проверка идёт «на здравый смысл», без реального поиска — дешевле, но слабее.
+      Ключ хранится только в этом браузере (localStorage) и уходит только на API провайдера.
+    </div>`;
+
+  const I18N = {
+    en:{
+      title:"Pre-flight check — review your draft before posting to X",
+      eyebrow:"Pre-flight check", h1:"Check the draft, then post",
+      sub:"Paste your draft. It cleans typos, fact-checks claims against the web, and gives a verdict: cleared for takeoff or hold. Posting stays manual — nothing leaves without you.",
+      cfgSummary:"Provider, key, model", providerLabel:"Provider", modelLabel:"Model",
+      websearchLabel:"fact-check via web search (billed by provider)",
+      guideSummary:"Where to get a key", guideHTML:guideEN,
+      draftLabel:"Draft", draftPh:"Paste what you are about to post, before you post it…",
+      run:"Check", checking:"Checking…",
+      claimsLabel:"Claims", cleanedLabel:"Cleaned text",
+      copy:"Copy", copied:"Copied", post:"Post to X", postAnyway:"Post anyway",
+      footer:"local tool · key stays in your browser only · posting via web intent",
+      cleared:"CLEARED", hold:"HOLD",
+      stVerified:"verified", stUnverified:"unverified", stWrong:"wrong",
+      over:" — over X limit ("+TWEET_MAX+")",
+      hintKey:"key — see “Where to get a key” below.",
+      errKey:"No API key. Open “Provider, key, model” and paste it.",
+      errModel:"No model selected.", errDraft:"Draft is empty.",
+      errNet:"Request failed — check the key and API access (network/CORS).",
+      errPrefix:"Error: ", errNoJson:"the model returned non-JSON"
+    },
+    ru:{
+      title:"Предполётная проверка — черновик перед постом в X",
+      eyebrow:"Предполётная проверка", h1:"Сверь черновик, потом постань",
+      sub:"Вставь черновик. Инструмент чистит опечатки, проверяет факты по вебу и даёт вердикт: к взлёту или стоп. Постинг — вручную, ничего не уходит без тебя.",
+      cfgSummary:"Провайдер, ключ, модель", providerLabel:"Провайдер", modelLabel:"Модель",
+      websearchLabel:"проверять факты через веб-поиск (платно у провайдера)",
+      guideSummary:"Откуда взять ключ", guideHTML:guideRU,
+      draftLabel:"Черновик", draftPh:"Кидай сюда то, что собрался запостить, пока не запостил…",
+      run:"Проверить", checking:"Проверяю…",
+      claimsLabel:"Утверждения", cleanedLabel:"Почищенный текст",
+      copy:"Копировать", copied:"Скопировано", post:"Опубликовать в X", postAnyway:"Всё равно опубликовать",
+      footer:"локальная утилита · ключ хранится только в твоём браузере · постинг через web intent",
+      cleared:"К ВЗЛЁТУ", hold:"СТОП",
+      stVerified:"подтверждено", stUnverified:"не проверено", stWrong:"неверно",
+      over:" — за лимитом X ("+TWEET_MAX+")",
+      hintKey:"ключ — см. «Откуда взять ключ» ниже.",
+      errKey:"Нет API-ключа. Открой «Провайдер, ключ, модель» и вставь его.",
+      errModel:"Не выбрана модель.", errDraft:"Пустой черновик.",
+      errNet:"Запрос не прошёл — проверь ключ и доступ к API (сеть/CORS).",
+      errPrefix:"Ошибка: ", errNoJson:"модель вернула не-JSON"
+    }
+  };
+
+  const PROVIDERS = {
+    anthropic:{ ph:"sk-ant-...", label:"Anthropic", models:["claude-sonnet-4-6","claude-opus-4-8","claude-haiku-4-5-20251001"], def:"claude-sonnet-4-6" },
+    openai:{ ph:"sk-...", label:"OpenAI", models:["gpt-5.5","gpt-5"], def:"gpt-5.5" }
+  };
+
+  let lang = (LS.get("lang","en")==="ru") ? "ru" : "en";
+  let T = I18N[lang];
+  let provider = (LS.get("provider","anthropic") in PROVIDERS) ? LS.get("provider","anthropic") : "anthropic";
+  let lastResult = null;
+
+  function applyProvider(){
+    const p = PROVIDERS[provider];
+    provSel.value = provider;
+    keyInput.placeholder = p.ph;
+    keyHint.textContent = p.label + " " + T.hintKey;
+    keyInput.value = LS.get("key_"+provider,"");
+    modelInput.value = LS.get("model_"+provider, p.def);
+    modelsList.innerHTML = p.models.map(m=>'<option value="'+m+'">').join("");
+  }
+
+  function applyLang(){
+    T = I18N[lang];
+    document.documentElement.lang = lang;
+    document.title = T.title;
+    document.querySelectorAll("[data-i18n]").forEach(el=>{ const k=el.getAttribute("data-i18n"); if(T[k]!=null) el.textContent=T[k]; });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ const k=el.getAttribute("data-i18n-ph"); if(T[k]!=null) el.placeholder=T[k]; });
+    $("guideBody").innerHTML = T.guideHTML;
+    document.querySelectorAll("#lang button").forEach(b=> b.classList.toggle("on", b.getAttribute("data-lang")===lang));
+    keyHint.textContent = PROVIDERS[provider].label + " " + T.hintKey;
+    count(draft,$("draftCount")); count(cleaned,$("cleanCount"));
+    if(lastResult) render(lastResult); // re-render verdict/claims in new language
+  }
+
+  // hydrate
+  websearch.checked = LS.get("websearch","1")==="1";
+  draft.value = LS.get("draft","");
+  applyProvider();
+  applyLang();
+
+  // wiring
+  document.querySelectorAll("#lang button").forEach(b=> b.addEventListener("click", ()=>{
+    lang = b.getAttribute("data-lang"); LS.set("lang",lang); applyLang();
+  }));
+  provSel.addEventListener("change", ()=>{ provider=provSel.value; LS.set("provider",provider); applyProvider(); });
+  keyInput.addEventListener("input", ()=> LS.set("key_"+provider, keyInput.value));
+  modelInput.addEventListener("input", ()=> LS.set("model_"+provider, modelInput.value));
+  websearch.addEventListener("change", ()=> LS.set("websearch", websearch.checked?"1":"0"));
+  draft.addEventListener("input", ()=>{ LS.set("draft", draft.value); count(draft,$("draftCount")); });
+
+  function count(el,target){
+    const n=el.value.length;
+    target.textContent = n + (n>TWEET_MAX ? T.over : "");
+    target.classList.toggle("over", n>TWEET_MAX);
+  }
+  cleaned.addEventListener("input", ()=>{ count(cleaned,$("cleanCount")); syncPostLink(); });
+
+  function syncPostLink(){ postBtn.href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(cleaned.value.trim()); }
+  function showErr(m){ errBox.textContent=m; errBox.style.display="block"; }
+  function clearErr(){ errBox.style.display="none"; errBox.textContent=""; }
+
+  function buildSystem(){
+    const noteLang = (lang==="ru") ? "по-русски" : "in English";
+    return [
+      "You are a strict pre-publication reviewer of draft posts for X (Twitter).",
+      "Tasks: 1) fix only typos and grammar, PRESERVING the author's voice, style, slang and tone — do not rewrite or smooth it out;",
+      "2) identify factual claims and verify each (use web search if available);",
+      "3) mark each as verified, unverified or wrong with a short note "+noteLang+";",
+      "4) give a verdict: CLEARED if there are no factual errors; HOLD if there is at least one wrong claim or a risky unverifiable statement presented as fact.",
+      "Opinions and jokes are not facts — do not flag them.",
+      "The 'cleaned' field and the 'summary' field must be "+noteLang+", matching the draft's language for 'cleaned'.",
+      "Reply STRICTLY as a single JSON object, no markdown, no explanations, schema:",
+      '{"cleaned": string, "verdict": "CLEARED"|"HOLD", "summary": string, "claims": [{"text": string, "status": "verified"|"unverified"|"wrong", "note": string}]}'
+    ].join(" ");
+  }
+
+  function extractJSON(text){
+    let t=text.replace(/```json/gi,"").replace(/```/g,"").trim();
+    const a=t.indexOf("{"), b=t.lastIndexOf("}");
+    if(a===-1||b===-1) throw new Error(T.errNoJson);
+    return JSON.parse(t.slice(a,b+1));
+  }
+  function openaiText(d){
+    if(typeof d.output_text==="string" && d.output_text) return d.output_text;
+    let out=""; (d.output||[]).forEach(it=>{ if(Array.isArray(it.content)) it.content.forEach(p=>{ if(typeof p.text==="string") out+=p.text; }); });
+    return out;
+  }
+
+  async function callAnthropic(key,model,text,useSearch){
+    const body={ model, max_tokens:2000, system:buildSystem(), messages:[{role:"user",content:"Draft to review:\n\n"+text}] };
+    if(useSearch) body.tools=[{type:"web_search_20250305",name:"web_search"}];
+    const res=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST",
+      headers:{ "Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true" },
+      body:JSON.stringify(body) });
+    const data=await res.json();
+    if(!res.ok) throw new Error((data&&data.error&&data.error.message)||("HTTP "+res.status));
+    return (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  }
+  async function callOpenAI(key,model,text,useSearch){
+    const body={ model, instructions:buildSystem(), input:"Draft to review:\n\n"+text, max_output_tokens:2000 };
+    if(useSearch) body.tools=[{type:"web_search"}];
+    const res=await fetch("https://api.openai.com/v1/responses",{ method:"POST",
+      headers:{ "Content-Type":"application/json","Authorization":"Bearer "+key }, body:JSON.stringify(body) });
+    const data=await res.json();
+    if(!res.ok) throw new Error((data&&data.error&&data.error.message)||("HTTP "+res.status));
+    return openaiText(data);
+  }
+
+  async function run(){
+    clearErr();
+    const key=keyInput.value.trim(), model=modelInput.value.trim(), text=draft.value.trim();
+    if(!key){ showErr(T.errKey); return; }
+    if(!model){ showErr(T.errModel); return; }
+    if(!text){ showErr(T.errDraft); return; }
+    runBtn.disabled=true; runBtn.innerHTML='<span class="spin"></span>'+T.checking;
+    try{
+      const useSearch=websearch.checked;
+      const raw = provider==="openai" ? await callOpenAI(key,model,text,useSearch) : await callAnthropic(key,model,text,useSearch);
+      lastResult = extractJSON(raw);
+      render(lastResult);
+    }catch(e){
+      let m=e.message||String(e);
+      if(/Failed to fetch|NetworkError/i.test(m)) m=T.errNet;
+      showErr(T.errPrefix+m);
+    }finally{ runBtn.disabled=false; runBtn.textContent=T.run; }
+  }
+
+  function render(r){
+    result.style.display="block";
+    const hold=(r.verdict==="HOLD");
+    verdict.className="verdict "+(hold?"hold":"cleared");
+    vtext.textContent=hold?T.hold:T.cleared;
+    vnote.textContent=r.summary||"";
+    claimsEl.innerHTML="";
+    const claims=Array.isArray(r.claims)?r.claims:[];
+    claimsLabel.style.display=claims.length?"block":"none";
+    claims.forEach(c=>{
+      const st=(c.status||"unverified").toLowerCase();
+      const label=st==="verified"?T.stVerified:st==="wrong"?T.stWrong:T.stUnverified;
+      const li=document.createElement("li");
+      const dot=document.createElement("span"); dot.className="dot "+st;
+      const wrap=document.createElement("div"); wrap.className="claim-txt";
+      const top=document.createElement("div"); top.textContent=c.text||"";
+      const stat=document.createElement("span"); stat.className="claim-status "+st; stat.textContent="  · "+label;
+      top.appendChild(stat); wrap.appendChild(top);
+      if(c.note){ const note=document.createElement("div"); note.className="claim-note"; note.textContent=c.note; wrap.appendChild(note); }
+      li.appendChild(dot); li.appendChild(wrap); claimsEl.appendChild(li);
+    });
+    cleaned.value=(r.cleaned||draft.value).trim();
+    count(cleaned,$("cleanCount")); syncPostLink();
+    postBtn.classList.toggle("warn",hold);
+    postBtn.textContent=hold?T.postAnyway:T.post;
+  }
+
+  copyBtn.addEventListener("click", async ()=>{
+    try{ await navigator.clipboard.writeText(cleaned.value); copyBtn.textContent=T.copied; setTimeout(()=>copyBtn.textContent=T.copy,1400); }
+    catch(_){ copyBtn.textContent="—"; }
+  });
+  runBtn.addEventListener("click", run);
+})();
+</script>
+</body>
+</html>
